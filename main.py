@@ -1,14 +1,12 @@
-import psutil
-import matplotlib.pyplot as plt
 import requests
 import cfg as c
-import os
 import socket
 import time
 import win32com.client as win32
 from tqdm import tqdm
 import subprocess
 import logging
+import threading
 
 logging.basicConfig(filename='eReebot.log', level=logging.ERROR)
 
@@ -34,48 +32,42 @@ def check_credentials():
         return False
 
 
-# def close_programs():
-#     try:
-#         # Close all open programs
-#         os.system("taskkill /f /im *")
-#         return True
-#     except Exception as e:
-#         logging.error("Error: ", e)
-#         return False
-
-
-def save_file():
+def save_files():
     try:
         # Save open Excel files
         excel = win32.gencache.EnsureDispatch('Excel.Application')
         for wb in excel.Workbooks:
             wb.Save()
-            print("File ", wb.Name, " saved.")
+            print(f"File {wb.Name} saved.")
         excel.Quit()
 
         # save open Word files
         word = win32.gencache.EnsureDispatch('Word.Application')
         for doc in word.Documents:
             doc.Save()
-            print("File ", doc.Name, " saved.")
+            print(f"File {doc.Name} saved.")
         word.Quit()
-
-        # return True
     except Exception as e:
-        logging.error("Error: ", e)
-        # return False
-
+        print(e)
     return True
 
 
 def counter_reboot():
     print("Rebooting...")
-    # Create a progress bar
+    thread = threading.Thread(target=countdown)
+    thread.start()
+
+
+def countdown():
     with tqdm(total=100) as pbar:
         for i in range(100):
             pbar.update(1)
             time.sleep(0.1)
-    return True
+    # Send a message to the Telegram bot
+    if not message_bot():
+        return
+    subprocess.call("shutdown /f /r /t 0", shell=True)
+    print("bb...")
 
 
 def message_bot():
@@ -93,44 +85,12 @@ def message_bot():
     # Define the message text
     message = f"☝⚠️ {hostname} - Экстренно перезагружен!!!"
 
-    # Define a list of desired disk letters
-    desired_disks = ["Z", "X", "Y"]
-
-    # Check for all available drives on the system except the C drive
-    for disk in psutil.disk_partitions():
-        if os.path.exists(disk.device) and disk.device != "C:\\":
-            # Check if the current disk is in the desired disks list
-            if disk.device[0] in desired_disks:
-                # Get the disk usage information
-                disk_info = psutil.disk_usage(disk.device)
-                disk_name = disk.device + " disk"
-                disk_total = disk_info.total / (1024.0 ** 3)
-                disk_used = disk_info.used / (1024.0 ** 3)
-                disk_free = disk_info.free / (1024.0 ** 3)
-                # Plot the disk usage information
-                labels = ['Used', 'Free']
-                sizes = [disk_used, disk_free]
-                plt.pie(sizes, labels=labels, autopct='%1.1f%%')
-                plt.title(disk_name + ' Usage')
-                # Add text to the image showing the total, used, and free disk space in GB
-                plt.text(0, -1, f'Total: {disk_total:.2f} GB\nUsed: {disk_used:.2f} GB\nFree: {disk_free:.2f} GB',
-                         fontsize=10)
-                # Save the plot to an image file
-                plt.savefig(disk_name + '_usage.png')
-
-                # Check if the image file was created successfully before attempting to send it via Telegram API
-                if os.path.exists(disk_name + '_usage.png'):
-                    # Send the message with the disk usage graph attached using the Telegram API
-                    try:
-                        response = requests.post(f"https://api.telegram.org/bot{bot_token}/sendPhoto",
-                                                 params={"chat_id": chat_id},
-                                                 files={"photo": open(disk_name + '_usage.png', "rb")},
-                                                 data={"caption": message})
-                    except Exception as e:
-                        logging.error("Error: ", e)
-
-                    # Delete the disk usage image file
-                    os.remove(disk_name + '_usage.png')
+    try:
+        response = requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                                 params={"chat_id": chat_id},
+                                 json={"text": message})
+    except Exception as e:
+        logging.error("Error: ", e)
     return True
 
 
@@ -143,27 +103,19 @@ def main():
     if not check_credentials():
         return
 
-    # Close all open programs
-    # if not close_programs():
-    #     return
-
     # Save open Excel files
-    if not save_file():
+    if not save_files():
         return
 
     # Reboot the PC
-    if not counter_reboot():
-        return
+    counter_reboot()
 
     # Send a message to the Telegram bot
-    if not message_bot():
-        return
-
-    # Reboot the PC
-    # subprocess.call("shutdown /r /t 1")
-    subprocess.call("shutdown /f /r /t 0", shell=True)
-    print("bb...")
+    # if not message_bot():
+    #     return
 
 
 if __name__ == '__main__':
     main()
+
+# Change the code, make the counter function in a separate thread, and that at 100% it calls the restart function of the PC.

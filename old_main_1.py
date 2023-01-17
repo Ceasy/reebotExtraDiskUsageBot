@@ -31,24 +31,23 @@ def check_credentials():
         return False
 
 
-def save_file():
+def save_files():
     try:
         # Save open Excel files
         excel = win32.gencache.EnsureDispatch('Excel.Application')
         for wb in excel.Workbooks:
             wb.Save()
-            print("File ", wb.Name, " saved.")
+            print(f"File {wb.Name} saved.")
         excel.Quit()
 
         # save open Word files
         word = win32.gencache.EnsureDispatch('Word.Application')
         for doc in word.Documents:
             doc.Save()
-            print("File ", doc.Name, " saved.")
+            print(f"File {doc.Name} saved.")
         word.Quit()
     except Exception as e:
-        logging.error("Error: ", e)
-
+        print(e)
     return True
 
 
@@ -95,7 +94,7 @@ def main():
         return
 
     # Save open Excel files
-    if not save_file():
+    if not save_files():
         return
 
     # Reboot the PC

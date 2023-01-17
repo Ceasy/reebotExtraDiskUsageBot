@@ -10,7 +10,7 @@ from tqdm import tqdm
 import subprocess
 import logging
 
-logging.basicConfig(filename='ereebot.log', level=logging.ERROR)
+logging.basicConfig(filename='eReebot.log', level=logging.ERROR)
 
 
 def check_internet_connection():
@@ -34,14 +34,14 @@ def check_credentials():
         return False
 
 
-def close_programs():
-    try:
-        # Close all open programs
-        os.system("taskkill /f /im *")
-        return True
-    except Exception as e:
-        logging.error("Error: ", e)
-        return False
+# def close_programs():
+#     try:
+#         # Close all open programs
+#         os.system("taskkill /f /im *")
+#         return True
+#     except Exception as e:
+#         logging.error("Error: ", e)
+#         return False
 
 
 def save_file():
@@ -144,8 +144,8 @@ def main():
         return
 
     # Close all open programs
-    if not close_programs():
-        return
+    # if not close_programs():
+    #     return
 
     # Save open Excel files
     if not save_file():
