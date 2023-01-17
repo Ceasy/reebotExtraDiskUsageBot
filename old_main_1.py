@@ -85,7 +85,6 @@ def message_bot():
         logging.error("Error: ", e)
     return True
 
-
 def main():
     # Check internet connection
     if not check_internet_connection():
