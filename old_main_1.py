@@ -1,34 +1,53 @@
-import psutil
-import matplotlib.pyplot as plt
 import requests
 import cfg as c
-import os
 import socket
 import time
 import win32com.client as win32
 from tqdm import tqdm
+import subprocess
+import logging
+
+logging.basicConfig(filename='eReebot.log', level=logging.ERROR)
+
+
+def check_internet_connection():
+    try:
+        socket.create_connection(("www.google.com", 80))
+        return True
+    except OSError:
+        pass
+    return False
+
+
+def check_credentials():
+    try:
+        bot_token = c.TOKEN
+        chat_id = c.chat_id
+        if not bot_token or not chat_id:
+            raise ValueError("Invalid bot token or chat ID")
+        return True
+    except Exception as e:
+        logging.error("Error: ", e)
+        return False
 
 
 def save_file():
-    # Save open Excel files
     try:
+        # Save open Excel files
         excel = win32.gencache.EnsureDispatch('Excel.Application')
         for wb in excel.Workbooks:
             wb.Save()
             print("File ", wb.Name, " saved.")
         excel.Quit()
-    except Exception as e:
-        print("Error: ", e)
 
-    # save open Word files
-    try:
+        # save open Word files
         word = win32.gencache.EnsureDispatch('Word.Application')
         for doc in word.Documents:
             doc.Save()
             print("File ", doc.Name, " saved.")
         word.Quit()
     except Exception as e:
-        print("Error: ", e)
+        logging.error("Error: ", e)
 
     return True
 
@@ -44,6 +63,10 @@ def counter_reboot():
 
 
 def message_bot():
+    # Check internet connection
+    if not check_internet_connection():
+        return
+
     # Get the hostname of the PC
     hostname = socket.gethostname()
 
@@ -54,46 +77,40 @@ def message_bot():
     # Define the message text
     message = f"☝⚠️ {hostname} - Экстренно перезагружен!!!"
 
-    # Check for disks Z, X, Y
-    disks = ['Z', 'X', 'Y']
-    for disk in disks:
-        if os.path.exists(disk + ':\\'):
-            # Get the disk usage information
-            disk_info = psutil.disk_usage(disk + ':\\')
-            disk_name = disk + " disk"
-            disk_total = disk_info.total / (1024.0 ** 3)
-            disk_used = disk_info.used / (1024.0 ** 3)
-            disk_free = disk_info.free / (1024.0 ** 3)
-            # Plot the disk usage information
-            labels = ['Used', 'Free']
-            sizes = [disk_used, disk_free]
-            plt.pie(sizes, labels=labels, autopct='%1.1f%%')
-            plt.title(disk_name + ' Usage')
-
-            # Add text to the image showing the total, used, and free disk space in GB
-            plt.text(0, -1, f'Total: {disk_total:.2f} GB\nUsed: {disk_used:.2f} GB\nFree: {disk_free:.2f} GB', fontsize=10)
-
-            # Save the plot to an image file
-            plt.savefig(disk_name + '_usage.png')
-
-            # Send the message with the disk usage graph attached using the Telegram API
-            response = requests.post(f"https://api.telegram.org/bot{bot_token}/sendPhoto",
-                                     params={"chat_id": chat_id},
-                                     files={"photo": open(disk_name + '_usage.png', "rb")},
-                                     data={"caption": message})
-
-            # Delete the disk usage image file
-            os.remove(disk_name + '_usage.png')
-
+    try:
+        response = requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                                 params={"chat_id": chat_id},
+                                 json={"text": message})
+    except Exception as e:
+        logging.error("Error: ", e)
     return True
 
 
-def reboot():
-    # reboot the computer
-    os.system("shutdown /f /r /t 0")
+def main():
+    # Check internet connection
+    if not check_internet_connection():
+        return
+
+    # Check credentials
+    if not check_credentials():
+        return
+
+    # Save open Excel files
+    if not save_file():
+        return
+
+    # Reboot the PC
+    if not counter_reboot():
+        return
+
+    # Send a message to the Telegram bot
+    if not message_bot():
+        return
+
+    # Reboot the PC
+    subprocess.call("shutdown /f /r /t 0", shell=True)
     print("bb...")
 
 
 if __name__ == '__main__':
-    if counter_reboot() and message_bot() and save_file():
-        reboot()
+    main()
