@@ -7,6 +7,7 @@ from tqdm import tqdm
 import subprocess
 import logging
 import threading
+import winshell
 
 logging.basicConfig(filename='eReebot.log', level=logging.ERROR)
 
@@ -52,6 +53,10 @@ def save_files():
     return True
 
 
+def clear_recycle():
+    winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False)
+
+
 def counter_reboot():
     print("Rebooting...")
     thread = threading.Thread(target=countdown)
@@ -62,7 +67,7 @@ def countdown():
     with tqdm(total=100) as pbar:
         for i in range(100):
             pbar.update(1)
-            time.sleep(0.1)
+            time.sleep(0.05) # 5 seconds
     # Send a message to the Telegram bot
     if not message_bot():
         return
@@ -107,6 +112,10 @@ def main():
     if not save_files():
         return
 
+    # Clear recycle bin
+    if not clear_recycle():
+        return
+
     # Reboot the PC
     counter_reboot()
 
@@ -117,5 +126,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# Change the code, make the counter function in a separate thread, and that at 100% it calls the restart function of the PC.
