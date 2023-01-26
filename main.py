@@ -49,7 +49,7 @@ def save_files():
             print(f"File {doc.Name} saved.")
         word.Quit()
     except Exception as e:
-        logging.error("Error: ", e)
+        print(e)
     return True
 
 
@@ -58,7 +58,7 @@ def clear_recycle():
         winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False)
         print("Recycle bin cleared.")
     except Exception as e:
-        logging.error("Error: ", e)
+        print(e)
     return True
 
 
