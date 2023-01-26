@@ -49,12 +49,17 @@ def save_files():
             print(f"File {doc.Name} saved.")
         word.Quit()
     except Exception as e:
-        print(e)
+        logging.error("Error: ", e)
     return True
 
 
 def clear_recycle():
-    winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False)
+    try:
+        winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False)
+        print("Recycle bin cleared.")
+    except Exception as e:
+        logging.error("Error: ", e)
+    return True
 
 
 def counter_reboot():
