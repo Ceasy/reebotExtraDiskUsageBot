@@ -5,6 +5,7 @@ import win32com.client as win32
 import subprocess
 import logging
 import winshell
+import concurrent.futures
 
 logging.basicConfig(filename='eReebot.log', level=logging.ERROR)
 
@@ -65,12 +66,6 @@ def clear_recycle():
         return False
 
 
-def reboot():
-    print("Rebooting...")
-    subprocess.call("shutdown /f /r /t 0", shell=True)
-    print("bb...")
-
-
 def message_bot():
     # Check internet connection
     if not check_internet_connection():
@@ -97,26 +92,25 @@ def message_bot():
 
 
 def main():
-    # Save open Excel files
-    if not save_files():
-        print("Open files are not saved...")
-    # Clear recycle bin
-    if not clear_recycle():
-        print("Nothing to clean in the recycle can...")
-    # Check internet connection
-    if check_internet_connection():
-        # Check credentials
-        if check_credentials():
-            # Send a message to the Telegram bot
-            if not message_bot():
-                print("Log is not sent...")
-    else:
-        print("No internet connection...")
+    # press Win+L to lock the PC
+    subprocess.Popen("rundll32.exe user32.dll,LockWorkStation", shell=True)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Save open Excel files
+        executor.submit(save_files)
+        # Clear recycle bin
+        executor.submit(clear_recycle)
+        # Check internet connection
+        internet_connection = check_internet_connection()
+        if internet_connection:
+            # Check credentials
+            if check_credentials():
+                # Send a message to the Telegram bot
+                executor.submit(message_bot)
+        else:
+            print("No internet connection...")
     # Reboot the PC
-    reboot()
+    subprocess.Popen("shutdown /f /r /t 0", shell=True)
 
 
 if __name__ == '__main__':
-    # press Win+L to lock the PC
-    subprocess.call("rundll32.exe user32.dll,LockWorkStation", shell=True)
     main()
