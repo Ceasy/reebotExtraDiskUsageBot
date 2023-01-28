@@ -1,12 +1,9 @@
 import requests
 import cfg as c
 import socket
-import time
 import win32com.client as win32
-from tqdm import tqdm
 import subprocess
 import logging
-import threading
 import winshell
 
 logging.basicConfig(filename='eReebot.log', level=logging.ERROR)
@@ -48,34 +45,28 @@ def save_files():
             doc.Save()
             print(f"File {doc.Name} saved.")
         word.Quit()
+        return True
     except Exception as e:
-        print(e)
-    return True
+        # print(f"error'{e}'")
+        if e == "(-2147221005, 'Недопустимая строка с указанием класса', None, None)":
+            print("Exel is not installed on this PC..")
+        return False
 
 
 def clear_recycle():
     try:
         winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False)
         print("Recycle bin cleared.")
+        return True
     except Exception as e:
-        print(e)
-    return True
+        # print(f"{e}")
+        if e == "(-2147418113, 'Разрушительный сбой', None, None)":
+            print("Recycle bin is empty.")
+        return False
 
 
-def counter_reboot():
+def reboot():
     print("Rebooting...")
-    thread = threading.Thread(target=countdown)
-    thread.start()
-
-
-def countdown():
-    with tqdm(total=100) as pbar:
-        for i in range(100):
-            pbar.update(1)
-            time.sleep(0.05) # 5 seconds
-    # Send a message to the Telegram bot
-    if not message_bot():
-        return
     subprocess.call("shutdown /f /r /t 0", shell=True)
     print("bb...")
 
@@ -99,35 +90,33 @@ def message_bot():
         response = requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",
                                  params={"chat_id": chat_id},
                                  json={"text": message})
+        return True
     except Exception as e:
         logging.error("Error: ", e)
-    return True
+        return False
 
 
 def main():
-    # Check internet connection
-    if not check_internet_connection():
-        return
-
-    # Check credentials
-    if not check_credentials():
-        return
-
     # Save open Excel files
     if not save_files():
-        return
-
+        print("Open files are not saved...")
     # Clear recycle bin
     if not clear_recycle():
-        return
-
+        print("Nothing to clean in the recycle can...")
+    # Check internet connection
+    if check_internet_connection():
+        # Check credentials
+        if check_credentials():
+            # Send a message to the Telegram bot
+            if not message_bot():
+                print("Log is not sent...")
+    else:
+        print("No internet connection...")
     # Reboot the PC
-    counter_reboot()
-
-    # Send a message to the Telegram bot
-    # if not message_bot():
-    #     return
+    reboot()
 
 
 if __name__ == '__main__':
+    # press Win+L to lock the PC
+    subprocess.call("rundll32.exe user32.dll,LockWorkStation", shell=True)
     main()
