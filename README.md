@@ -29,12 +29,12 @@ You will receive a message in Telegram that the PC has been rebooted
 Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-main.py - actual main program
-old_main_1.py - old main program (version 1). This version worked stable, without additional functions, but with sending screenshots.
-old_main_2.py - dublicat of main program. This version works now, it has implemented additional functions such as connection check, API check .
-setup.py - To convert from py to cython format.
-test.py - To test the program.
-test2.py - To test the program.
+* main.py - actual main program
+* old_main_1.py - old main program (version 1). This version worked stable, without additional functions, but with sending screenshots.
+* old_main_2.py - dublicat of main program. This version works now, it has implemented additional functions such as connection check, API check .
+* setup.py - To convert from py to cython format.
+* test.py - To test the program.
+* test2.py - To test the program.
 
 # License
 MIT
