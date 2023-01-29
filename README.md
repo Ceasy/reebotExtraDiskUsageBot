@@ -18,10 +18,10 @@ The script can be further optimized by running functions in parallel and using n
 Feel free to use and modify the script to suit your needs.
 
 # Installation
-Download or clone the repository
-Create a bot in Telegram and get the token
-Replace bot_token and chat_id in the cfg.py file with your own values
-Run the script
+1) Download or clone the repository
+2) Create a bot in Telegram and get the token
+3) Replace bot_token and chat_id in the cfg.py file with your own values
+4) Run the script
 # Usage
 * Run the script
 * Wait for the script to complete
