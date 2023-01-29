@@ -1,3 +1,4 @@
+#Description
 eReebot is a Python script that allows you to reboot your PC and send a message to a Telegram bot, notifying that the PC has been rebooted.
 
 The script performs the following actions:
