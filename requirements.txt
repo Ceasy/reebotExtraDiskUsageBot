@@ -1,0 +1,4 @@
+setuptools~=65.5.1
+requests
+pywin32
+winshell

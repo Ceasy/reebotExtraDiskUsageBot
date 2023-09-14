@@ -14,20 +14,20 @@ def check_internet_connection():
     try:
         socket.create_connection(("www.google.com", 80))
         return True
-    except OSError:
-        pass
-    return False
+    except OSError as e:
+        logging.error(f"Error checking internet connection: {e}")
+        return False
 
 
 def check_credentials():
     try:
-        bot_token = c.TOKEN
-        chat_id = c.chat_id
+        bot_token = getattr(c, 'TOKEN', None)
+        chat_id = getattr(c, 'CHAT_ID', None)
         if not bot_token or not chat_id:
             raise ValueError("Invalid bot token or chat ID")
         return True
-    except Exception as e:
-        logging.error("Error: ", e)
+    except ValueError as e:
+        logging.error(f"Error checking credentials: {e}")
         return False
 
 
@@ -47,10 +47,8 @@ def save_files():
             print(f"File {doc.Name} saved.")
         word.Quit()
         return True
-    except Exception as e:
-        # print(f"error'{e}'")
-        if e == "(-2147221005, 'Недопустимая строка с указанием класса', None, None)":
-            print("Exel is not installed on this PC..")
+    except win32.pywintypes.com_error as e:
+        logging.error(f"Error saving files: {e}")
         return False
 
 
@@ -59,10 +57,8 @@ def clear_recycle():
         winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False)
         print("Recycle bin cleared.")
         return True
-    except Exception as e:
-        # print(f"{e}")
-        if e == "(-2147418113, 'Разрушительный сбой', None, None)":
-            print("Recycle bin is empty.")
+    except win32.pywintypes.com_error as e:
+        logging.error(f"Error clearing recycle bin: {e}")
         return False
 
 
@@ -76,7 +72,7 @@ def message_bot():
 
     # Define the bot's token and the chat ID of the recipient (in this case, yourself)
     bot_token = c.TOKEN
-    chat_id = c.chat_id
+    chat_id = c.CHAT_ID
 
     # Define the message text
     message = f"☝⚠️ {hostname} - Экстренно перезагружен!!!"
@@ -85,9 +81,10 @@ def message_bot():
         response = requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",
                                  params={"chat_id": chat_id},
                                  json={"text": message})
+        response.raise_for_status()
         return True
-    except Exception as e:
-        logging.error("Error: ", e)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error messaging bot: {e}")
         return False
 
 
