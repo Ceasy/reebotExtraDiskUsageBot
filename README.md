@@ -1,41 +1,40 @@
-# Description
-eReebot is a Python script that allows you to reboot your PC and send a message to a Telegram bot, notifying that the PC has been rebooted.
 
-The script performs the following actions:
+# eReebot - Утилита для автоматической перезагрузки с уведомлением
 
-Saves open Excel and Word files.
-Clears the recycle bin.
-Checks for internet connection and Telegram bot credentials.
-Sends a message to the Telegram bot with the hostname of the PC and a notification that the PC has been rebooted.
-Reboots the PC.
-This script can be useful for those who need to reboot their PC regularly and want to be notified when the reboot is complete. The script can also be useful for those who want to keep their PC clean and clear the recycle bin regularly.
+## Описание
 
-* main.py - actual main program
-* old_main_1.py - old main program (version 1). This version worked stable, without additional functions, but with sending screenshots.
-* old_main_2.py - dublicat of main program. This version works now, it has implemented additional functions such as connection check, API check .
-* setup.py - To convert from py to cython format.
-* test.py - To test the program.
-* test2.py - To test the program.
+`eReebot` - это скрипт на Python, который позволяет автоматически перезагружать ваш компьютер и отправлять уведомление боту в Telegram о завершении перезагрузки. Скрипт выполняет следующие действия:
 
-To use the script, you need to have Python installed on your PC and configure the Telegram bot token and chat ID in the cfg.py file.
-The script can be further optimized by running functions in parallel and using non-blocking calls.
-Feel free to use and modify the script to suit your needs.
+- Сохраняет открытые файлы Excel и Word.
+- Очищает корзину мусора.
+- Проверяет интернет-соединение и учетные данные бота в Telegram.
+- Отправляет уведомление боту в Telegram с именем хоста ПК и сообщением о перезагрузке.
+- Перезагружает ПК.
 
-# Installation
-1) Download or clone the repository
-2) Create a bot in Telegram and get the token
-3) Replace bot_token and chat_id in the cfg.py file with your own values
-4) Run the script
+Эта утилита может быть полезна для администраторов систем и тех, кто регулярно перезагружает свой компьютер и хочет получать уведомления о завершении перезагрузки.
 
-# Usage
-* Run the script
-* Wait for the script to complete
-* You will receive a message in Telegram that the PC has been rebooted
-# Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+## Установка
 
-# License
+1. Скачайте или клонируйте репозиторий.
+2. Создайте бота в Telegram и получите токен.
+3. Замените `bot_token` и `chat_id` в файле `cfg.py` на свои значения.
+4. Установите необходимые пакеты, используя команду: `pip install -r requirements.txt`.
+5. Запустите скрипт с помощью команды: `python main.py`.
+
+## Использование
+
+- Запустите скрипт командой: `python main.py`.
+- Дождитесь завершения работы скрипта.
+- Вы получите уведомление в Telegram о том, что ПК был перезагружен.
+
+## Вклад
+
+Пулл-реквесты приветствуются. Перед внесением значительных изменений, пожалуйста, обсудите это, создав вопрос.
+
+## Лицензия
+
 MIT
 
-# Additional
-This script is not for commercial use and is provided as is. Use at your own risk. The author will not be held liable for any damage caused by this script.
+## Дополнительно
+
+Этот скрипт предоставляется "как есть" и не предназначен для коммерческого использования. Используйте на свой страх и риск. Автор не несет ответственности за любой ущерб, вызванный этим скриптом.
