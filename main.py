@@ -127,6 +127,24 @@ def clear_temp_folder():
         logger.error("Could not find TEMP folder")
 
 
+def clear_1c_cache():
+    try:
+        user_profile_path = os.environ['USERPROFILE']
+        roaming_path = os.path.join(user_profile_path, 'AppData', 'Roaming', '1C', '1cv8')
+        local_path = os.path.join(user_profile_path, 'AppData', 'Local', '1C', '1cv8')
+
+        paths_to_clear = [roaming_path, local_path]
+
+        for path in paths_to_clear:
+            if os.path.exists(path):
+                shutil.rmtree(path)
+                logger.info(f"Cleared 1C cache at {path}")
+            else:
+                logger.warning(f"1C cache folder at {path} does not exist")
+    except Exception as e:
+        logger.error(f"Error clearing 1C cache: {e}")
+
+
 def message_bot():
     # Check internet connection
     if not check_internet_connection():
@@ -163,6 +181,8 @@ def main():
         executor.submit(clear_recycle)
         # Clear Office folders
         executor.submit(clear_office_folders)
+        # Clear 1C cache folders
+        executor.submit(clear_1c_cache)
         # Clear TEMP folder
         executor.submit(clear_temp_folder)
         # Check internet connection
