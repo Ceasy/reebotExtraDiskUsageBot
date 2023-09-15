@@ -11,6 +11,8 @@ import ctypes
 import os
 import glob
 
+
+# test
 log_directory_path = os.path.join(os.environ['LOCALAPPDATA'], 'eReboot')
 os.makedirs(log_directory_path, exist_ok=True)
 
