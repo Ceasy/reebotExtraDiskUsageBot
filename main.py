@@ -1,3 +1,4 @@
+import shutil
 import subprocess
 import pythoncom
 import requests
@@ -8,6 +9,7 @@ import logging
 import concurrent.futures
 import ctypes
 import os
+import glob
 
 log_directory_path = os.path.join(os.environ['LOCALAPPDATA'], 'eReboot')
 os.makedirs(log_directory_path, exist_ok=True)
@@ -84,6 +86,30 @@ def clear_recycle():
         logger.error(f"Error clearing recycle bin: {e}")
 
 
+def clear_office_folders():
+    folders_to_clear = [
+        os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Word'),
+        os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Excel'),
+        os.path.join(os.getenv('APPDATA'), 'Microsoft', 'PowerPoint'),
+        os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Outlook'),
+    ]
+
+    for folder in folders_to_clear:
+        if os.path.exists(folder):
+            files = glob.glob(os.path.join(folder, '*'))
+            for f in files:
+                try:
+                    if os.path.isfile(f):
+                        os.remove(f)
+                    elif os.path.isdir(f):
+                        shutil.rmtree(f)
+                except Exception as e:
+                    logger.error(f"Error clearing folder {folder}: {e}")
+        else:
+            logger.info(f"Folder {folder} does not exist, skipping...")
+
+
+
 def message_bot():
     # Check internet connection
     if not check_internet_connection():
@@ -118,6 +144,8 @@ def main():
         executor.submit(save_files)
         # Clear recycle bin
         executor.submit(clear_recycle)
+        # Clear Office folders
+        executor.submit(clear_office_folders)
         # Check internet connection
         internet_connection = check_internet_connection()
         if internet_connection:
