@@ -109,6 +109,23 @@ def clear_office_folders():
             logger.info(f"Folder {folder} does not exist, skipping...")
 
 
+def clear_temp_folder():
+    temp_folder = os.getenv('TEMP')
+
+    if temp_folder:
+        logger.info(f"Clearing the Temp folder: {temp_folder}")
+        files = glob.glob(os.path.join(temp_folder, '*'))
+        for f in files:
+            try:
+                if os.path.isfile(f):
+                    os.remove(f)
+                elif os.path.isdir(f):
+                    shutil.rmtree(f)
+            except Exception as e:
+                logger.error(f"Error clearing temp folder: {e}")
+    else:
+        logger.error("Could not find TEMP folder")
+
 
 def message_bot():
     # Check internet connection
@@ -146,6 +163,8 @@ def main():
         executor.submit(clear_recycle)
         # Clear Office folders
         executor.submit(clear_office_folders)
+        # Clear TEMP folder
+        executor.submit(clear_temp_folder)
         # Check internet connection
         internet_connection = check_internet_connection()
         if internet_connection:
