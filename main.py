@@ -7,14 +7,14 @@ import logging
 import winshell
 import concurrent.futures
 
-logging.basicConfig(filename='eReebot.log', level=logging.ERROR)
+logging.basicConfig(filename='eReebot.log', level=logging.INFO)
 
 
 def check_internet_connection():
     try:
         socket.create_connection(("www.google.com", 80))
         return True
-    except OSError as e:
+    except (OSError, socket.gaierror) as e:
         logging.error(f"Error checking internet connection: {e}")
         return False
 
