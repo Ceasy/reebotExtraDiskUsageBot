@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import time
 import pythoncom
 import requests
 import cfg as c
@@ -12,7 +13,6 @@ import os
 import glob
 
 
-# test
 log_directory_path = os.path.join(os.environ['LOCALAPPDATA'], 'eReboot')
 os.makedirs(log_directory_path, exist_ok=True)
 
@@ -160,7 +160,7 @@ def message_bot():
     chat_id = c.CHAT_ID
 
     # Define the message text
-    message = f"☝⚠️ {hostname} - Экстренно перезагружен!!!"
+    message = f"☝⚠️ {hostname} - Экстренно перезагружается!!!"
 
     try:
         response = requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",
@@ -177,6 +177,16 @@ def main():
     # press Win+L to lock the PC
     subprocess.Popen("rundll32.exe user32.dll,LockWorkStation", shell=True)
     with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Check internet connection
+        internet_connection = check_internet_connection()
+        if internet_connection:
+            # Check credentials
+            if check_credentials():
+                # Send a message to the Telegram bot
+                executor.submit(message_bot)
+        else:
+            print("No internet connection...")
+        time.sleep(2)
         # Save open Excel files
         executor.submit(save_files)
         # Clear recycle bin
@@ -187,15 +197,6 @@ def main():
         executor.submit(clear_1c_cache)
         # Clear TEMP folder
         executor.submit(clear_temp_folder)
-        # Check internet connection
-        internet_connection = check_internet_connection()
-        if internet_connection:
-            # Check credentials
-            if check_credentials():
-                # Send a message to the Telegram bot
-                executor.submit(message_bot)
-        else:
-            print("No internet connection...")
     # Reboot the PC
     subprocess.Popen("shutdown /f /r /t 0", shell=True)
 
