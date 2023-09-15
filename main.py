@@ -1,20 +1,24 @@
+import subprocess
+
+import pythoncom
 import requests
 import cfg as c
 import socket
 import win32com.client as win32
-import subprocess
 import logging
-import winshell
 import concurrent.futures
+import ctypes
 
-logging.basicConfig(filename='eReebot.log', level=logging.INFO)
+logging.basicConfig(filename='eReebot.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger()
+pythoncom.CoInitialize()
 
 
 def check_internet_connection():
     try:
         socket.create_connection(("www.google.com", 80))
         return True
-    except (OSError, socket.gaierror) as e:
+    except OSError as e:
         logging.error(f"Error checking internet connection: {e}")
         return False
 
@@ -33,6 +37,7 @@ def check_credentials():
 
 def save_files():
     try:
+        pythoncom.CoInitialize()
         # Save open Excel files
         excel = win32.gencache.EnsureDispatch('Excel.Application')
         for wb in excel.Workbooks:
@@ -50,16 +55,26 @@ def save_files():
     except win32.pywintypes.com_error as e:
         logging.error(f"Error saving files: {e}")
         return False
+    finally:
+        pythoncom.CoUninitialize()
 
 
 def clear_recycle():
     try:
-        winshell.recycle_bin().empty(confirm=False, show_progress=False, sound=False)
-        print("Recycle bin cleared.")
-        return True
-    except win32.pywintypes.com_error as e:
-        logging.error(f"Error clearing recycle bin: {e}")
-        return False
+        SHERB_NOCONFIRMATION = 0x00000001
+        SHERB_NOPROGRESSUI = 0x00000002
+        SHERB_NOSOUND = 0x00000004
+        SHERB_REASON = SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND
+
+        result = ctypes.windll.shell32.SHEmptyRecycleBinA(None, None, SHERB_REASON)
+
+        if result == 0:
+            logger.info("Recycle bin cleared successfully!")
+        else:
+            logger.error(f"Failed to empty Recycle Bin. Error code: {result}")
+
+    except Exception as e:
+        logger.error(f"Error clearing recycle bin: {e}")
 
 
 def message_bot():
