@@ -160,7 +160,7 @@ def message_bot():
     chat_id = c.CHAT_ID
 
     # Define the message text
-    message = f"☝⚠️ {hostname} - Экстренно перезагружается!!!"
+    message = f"☝⚠️ {hostname} - Экстренно перезагружается..."
 
     try:
         response = requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",
