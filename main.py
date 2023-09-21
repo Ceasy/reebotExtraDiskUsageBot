@@ -5,7 +5,6 @@ import pythoncom
 import requests
 import cfg as c
 import socket
-import win32com.client as win32
 import logging
 import concurrent.futures
 import ctypes
@@ -61,12 +60,16 @@ pythoncom.CoInitialize()
 
 
 def check_internet_connection():
+    connection = None
     try:
-        socket.create_connection(("www.google.com", 80))
+        connection = socket.create_connection(("www.google.com", 80))
         return True
     except OSError as e:
         logging.exception("Error checking internet connection")
         raise InternetConnectionError("Unable to connect to the internet.") from e
+    finally:
+        if connection:
+            connection.close()
 
 
 def check_credentials():
@@ -124,23 +127,24 @@ def clear_office_folders():
             logger.info(f"Folder {folder} does not exist, skipping...")
 
 
-def clear_temp_folder():
-    temp_folder = os.getenv('TEMP')
+def clear_temp_folder(folder_path=None):
+    if not folder_path:
+        folder_path = os.getenv('TEMP')
 
-    if temp_folder:
-        logger.info(f"Clearing the Temp folder: {temp_folder}")
-        files = glob.glob(os.path.join(temp_folder, '*'))
+    if folder_path:
+        logger.info(f"Clearing the folder: {folder_path}")
+        files = glob.glob(os.path.join(folder_path, '*'))
         for f in files:
             try:
                 if os.path.isfile(f):
                     os.remove(f)
                 elif os.path.isdir(f):
                     shutil.rmtree(f)
+            except PermissionError:
+                logging.warning(f"Permission error while trying to delete {f}. Skipping...")
             except Exception as e:
-                logging.exception("Error clearing temp folder")
-                raise TempFolderClearError("Error clearing the temp folder.") from e
-    else:
-        logger.error("Could not find TEMP folder")
+                logging.exception("Error clearing folder")
+                raise TempFolderClearError("Error clearing the folder.") from e
 
 
 def clear_1c_cache():
