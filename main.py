@@ -13,6 +13,41 @@ import os
 import glob
 
 
+class InternetConnectionError(Exception):
+    """Raised when there is an error with the internet connection."""
+    pass
+
+
+class CredentialsError(Exception):
+    """Raised when there is an error with the bot credentials."""
+    pass
+
+
+class FileSaveError(Exception):
+    """Raised when there is an error saving files."""
+    pass
+
+
+class RecycleBinError(Exception):
+    """Raised when there is an error clearing the recycle bin."""
+    pass
+
+
+class OfficeFolderClearError(Exception):
+    """Raised when there is an error clearing office folders."""
+    pass
+
+
+class TempFolderClearError(Exception):
+    """Raised when there is an error clearing the temp folder."""
+    pass
+
+
+class OneCCacheClearError(Exception):
+    """Raised when there is an error clearing the 1C cache."""
+    pass
+
+
 log_directory_path = os.path.join(os.environ['LOCALAPPDATA'], 'eReboot')
 os.makedirs(log_directory_path, exist_ok=True)
 
@@ -30,8 +65,8 @@ def check_internet_connection():
         socket.create_connection(("www.google.com", 80))
         return True
     except OSError as e:
-        logging.error(f"Error checking internet connection: {e}")
-        return False
+        logging.exception("Error checking internet connection")
+        raise InternetConnectionError("Unable to connect to the internet.") from e
 
 
 def check_credentials():
@@ -42,32 +77,8 @@ def check_credentials():
             raise ValueError("Invalid bot token or chat ID")
         return True
     except ValueError as e:
-        logging.error(f"Error checking credentials: {e}")
-        return False
-
-
-def save_files():
-    try:
-        pythoncom.CoInitialize()
-        # Save open Excel files
-        excel = win32.gencache.EnsureDispatch('Excel.Application')
-        for wb in excel.Workbooks:
-            wb.Save()
-            print(f"File {wb.Name} saved.")
-        excel.Quit()
-
-        # save open Word files
-        word = win32.gencache.EnsureDispatch('Word.Application')
-        for doc in word.Documents:
-            doc.Save()
-            print(f"File {doc.Name} saved.")
-        word.Quit()
-        return True
-    except win32.pywintypes.com_error as e:
-        logging.error(f"Error saving files: {e}")
-        return False
-    finally:
-        pythoncom.CoUninitialize()
+        logging.exception("Error checking credentials")
+        raise CredentialsError("Invalid bot credentials.") from e
 
 
 def clear_recycle():
@@ -85,7 +96,8 @@ def clear_recycle():
             logger.error(f"Failed to empty Recycle Bin. Error code: {result}")
 
     except Exception as e:
-        logger.error(f"Error clearing recycle bin: {e}")
+        logging.exception("Error clearing recycle bin")
+        raise RecycleBinError("Error clearing the recycle bin.") from e
 
 
 def clear_office_folders():
@@ -106,7 +118,8 @@ def clear_office_folders():
                     elif os.path.isdir(f):
                         shutil.rmtree(f)
                 except Exception as e:
-                    logger.error(f"Error clearing folder {folder}: {e}")
+                    logging.exception(f"Error clearing folder {folder}")
+                    raise OfficeFolderClearError(f"Error clearing folder {folder}.") from e
         else:
             logger.info(f"Folder {folder} does not exist, skipping...")
 
@@ -124,7 +137,8 @@ def clear_temp_folder():
                 elif os.path.isdir(f):
                     shutil.rmtree(f)
             except Exception as e:
-                logger.error(f"Error clearing temp folder: {e}")
+                logging.exception("Error clearing temp folder")
+                raise TempFolderClearError("Error clearing the temp folder.") from e
     else:
         logger.error("Could not find TEMP folder")
 
@@ -144,7 +158,8 @@ def clear_1c_cache():
             else:
                 logger.warning(f"1C cache folder at {path} does not exist")
     except Exception as e:
-        logger.error(f"Error clearing 1C cache: {e}")
+        logging.exception("Error clearing 1C cache")
+        raise OneCCacheClearError("Error clearing the 1C cache.") from e
 
 
 def message_bot():
@@ -187,8 +202,6 @@ def main():
         else:
             print("No internet connection...")
         time.sleep(2)
-        # Save open Excel files
-        executor.submit(save_files)
         # Clear recycle bin
         executor.submit(clear_recycle)
         # Clear Office folders
